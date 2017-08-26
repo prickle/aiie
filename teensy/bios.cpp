@@ -144,7 +144,7 @@ bool BIOS::runUntilDone()
  done:
   // Undo whatever damage we've done to the screen
   g_display->redraw();
-  g_display->blit({0, 0, 279, 191});
+  g_display->blit({0, 0, 191, 279});
 
   // return true if any persistent setting changed that we want to store in eeprom
   return volumeDidChange;
@@ -165,12 +165,12 @@ uint8_t BIOS::GetAction(int8_t selection)
 {
   while (1) {
     DrawMainMenu(selection);
-    while (!((TeensyKeyboard *)g_keyboard)->kbhit() &&
-	   (digitalRead(RESETPIN) == HIGH)) {
-      ;
+    while (!g_keyboard->kbhit()){// &&
+	   //(digitalRead(RESETPIN) == HIGH)) {
+      yield();
       // Wait for either a keypress or the reset button to be pressed
     }
-
+/*
     if (digitalRead(RESETPIN) == LOW) {
       // wait until it's no longer pressed
       while (digitalRead(RESETPIN) == HIGH)
@@ -179,8 +179,10 @@ uint8_t BIOS::GetAction(int8_t selection)
       // then return an exit code
       return ACT_EXIT;
     }
-    
-    switch (((TeensyKeyboard *)g_keyboard)->read()) {
+ */   
+    switch (g_keyboard->read()) {
+    case SYSRQ:
+	  return ACT_EXIT;
     case DARR:
       selection++;
       selection %= NUM_ACTIONS;
@@ -194,6 +196,25 @@ uint8_t BIOS::GetAction(int8_t selection)
       if (isActionActive(selection))
 	return selection;
       break;
+	case '1':
+	  if (((AppleVM *)g_vm)->DiskName(0)[0] != '\0') {
+	    ((AppleVM *)g_vm)->ejectDisk(0);
+	  } else {
+		if (SelectDiskImage()) {
+		  ((AppleVM *)g_vm)->insertDisk(0, staticPathConcat(rootPath, fileDirectory[selectedFile]), false);
+		  return ACT_EXIT;
+		}
+	  }
+      break;
+    case '2':
+      if (((AppleVM *)g_vm)->DiskName(1)[0] != '\0') {
+		((AppleVM *)g_vm)->ejectDisk(1);
+      } else {
+		if (SelectDiskImage()) {
+		  ((AppleVM *)g_vm)->insertDisk(1, staticPathConcat(rootPath, fileDirectory[selectedFile]), false);
+		  return ACT_EXIT;
+		}
+	  }
     }
   }
 }
@@ -304,9 +325,9 @@ bool BIOS::SelectDiskImage()
   while (1) {
     DrawDiskNames(page, sel);
 
-    while (!((TeensyKeyboard *)g_keyboard)->kbhit())
-      ;
-    switch (((TeensyKeyboard *)g_keyboard)->read()) {
+    while (!g_keyboard->kbhit())
+      yield();
+    switch (g_keyboard->read()) {
     case DARR:
       sel++;
       sel %= BIOS_MAXFILES + 2;

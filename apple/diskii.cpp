@@ -20,7 +20,7 @@ DiskII::DiskII(AppleMMU *mmu)
 {
   this->trackBuffer = new RingBuffer(NIBTRACKSIZE);
   this->rawTrackBuffer = (uint8_t *)malloc(4096);
-
+  if (this->rawTrackBuffer == NULL) Serial.println("DiskII Out of memory!");
   this->mmu = mmu;
 
   curTrack = 0;
@@ -448,7 +448,6 @@ void DiskII::fillDiskBuffer()
       trackToRead = -1;
       return;
     }
-
     nibblizeTrack(trackBuffer, rawTrackBuffer, diskType[diskWeAreUsing], curTrack);
   }
 

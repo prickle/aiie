@@ -111,6 +111,81 @@ uint8_t AppleKeyboard::translateKeyWithModifiers(uint8_t k)
   return k;
 }
 
+// apply the apple keymap.
+// FIXME: easier with an array, but is that better?
+uint8_t AppleKeyboard::translateKeyWithModifiers(uint8_t k, uint8_t m)
+{
+  // tolower, so we know what we're working with...
+  if (k >= 'A' && k <= 'Z') {
+    k = k - 'A' + 'a';
+  }
+
+  if (m & (USB_LEFT_CTRL | USB_RIGHT_CTRL | USB_LEFT_GUI | USB_RIGHT_GUI)) {
+    if (k >= 'a' && k <= 'z') {
+      return k - 'a' + 1;
+    }
+    // FIXME: any other control keys honored on the //e keyboard?
+  }
+
+  if (capsLockEnabled && k >= 'a' && k <= 'z') {
+    return k - 'a' + 'A';
+  }
+
+  if (m & (USB_LEFT_SHIFT | USB_RIGHT_SHIFT)) {
+    if (k >= 'a' && k <= 'z') {
+      return k - 'a' + 'A';
+    }
+    switch (k) {
+    case '1':
+      return '!';
+    case '2':
+      return '@';
+    case '3':
+      return '#';
+    case '4':
+      return '$';
+    case '5':
+      return '%';
+    case '6':
+      return '^';
+    case '7':
+      return '&';
+    case '8':
+      return '*';
+    case '9':
+      return '(';
+    case '0':
+      return ')';
+    case '-':
+      return '_';
+    case '=':
+      return '+';
+    case '[':
+      return '{';
+    case ']':
+      return '}';
+    case '\\':
+      return '|';
+    case '`':
+      return '~';
+    case ';':
+      return ':';
+    case '\'':
+      return '"';
+    case ',':
+      return '<';
+    case '.':
+      return '>';
+    case '/':
+      return '?';
+    }
+    // FIXME: what the heck is it? I guess we don't need to shift it?
+  }
+
+  // And if we fall through, then just return it as-is
+  return k;
+}
+
 void AppleKeyboard::keyDepressed(uint8_t k)
 {
   keysDown[k] = true;  
@@ -141,6 +216,71 @@ void AppleKeyboard::keyDepressed(uint8_t k)
 }
 
 void AppleKeyboard::keyReleased(uint8_t k)
+{
+  keysDown[k] = false;  
+
+  // Special handling: apple keys
+  if (k == LA) {
+    mmu->isOpenApplePressed = false;
+    return;
+  }
+  if (k == RA) {
+    mmu->isClosedApplePressed = false;
+    return;
+  }
+  if (k == LOCK) {
+    // Nothing to do when the caps lock key is released.
+    return;
+  }
+
+  if (anyKeyIsDown) {
+    anyKeyIsDown = false;
+    for (int i=0; i<sizeof(keysDown); i++) {
+      if (keysDown[i] && !isVirtualKey(i)) {
+	anyKeyIsDown = true;
+	break;
+      }
+    }
+    if (!anyKeyIsDown) {
+      mmu->setKeyDown(false);
+    }
+  }  
+}
+
+void AppleKeyboard::keyDepressed(uint8_t k, uint8_t m)
+{
+  keysDown[k] = true;  
+
+  // If it's not a virtual key, then set the anyKeyDown flag
+  // (the VM will see this as a keyboard key)
+  if (k && !isVirtualKey(k)) {
+    if (!anyKeyIsDown) {
+      mmu->setKeyDown(true);
+      anyKeyIsDown = true;
+    }
+    keyThatIsRepeating = translateKeyWithModifiers(k, m);
+    startRepeatTimer = g_cpu->cycles + STARTREPEAT;
+    mmu->keyboardInput(keyThatIsRepeating);
+  } else if (k == LA) {
+    // Special handling: apple keys
+    mmu->isOpenApplePressed = true;
+    return;
+  } else if (k == RA) {
+    // Special handling: apple keys
+    mmu->isClosedApplePressed = true;
+    return;
+  } else if (k == LOCK) {
+    // Special handling: caps lock
+    capsLockEnabled = !capsLockEnabled;
+    return;
+  } //else if (k == SYSRQ) {
+    // Special handling: System request
+    //biosRequest = true;
+    //return;
+  //}
+}
+
+void AppleKeyboard::keyReleased(uint8_t k, uint8_t m)
 {
   keysDown[k] = false;  
 

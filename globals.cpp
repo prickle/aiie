@@ -10,3 +10,4 @@ PhysicalPaddles *g_paddles = NULL;
 PhysicalPrinter *g_printer = NULL;
 int16_t g_volume = 15;
 uint8_t g_displayType = 3; // FIXME m_perfectcolor
+bool biosRequest = false;

@@ -764,6 +764,7 @@ void AppleMMU::allocateMemory()
   for (uint16_t i=0; i<0xC0; i++) {
     for (uint8_t j=0; j<2; j++) {
       ramPages[i][j] = (uint8_t *)malloc(0x100);
+	  if (ramPages[i][j] == NULL) Serial.println("MMU Out of memory!");
     }
     for (uint8_t j=2; j<5; j++) {
       ramPages[i][j] = NULL;
@@ -772,8 +773,12 @@ void AppleMMU::allocateMemory()
     writePages[i] = ramPages[i][0];
   }
   for (uint16_t i=0xC0; i<0x100; i++) {
-    for (uint8_t j=0; j<5; j++) {
+    for (uint8_t j=0; j<2; j++) {
       ramPages[i][j] = (uint8_t *)malloc(0x100);
+	  if (ramPages[i][j] == NULL) Serial.println("MMU Out of memory!");
+    }
+    for (uint8_t j=2; j<5; j++) {
+      ramPages[i][j] = NULL;
     }
     readPages[i] = ramPages[i][0];
     writePages[i] = ramPages[i][0];

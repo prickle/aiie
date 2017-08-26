@@ -12,8 +12,8 @@ class TeensyKeyboard : public PhysicalKeyboard {
   virtual void maintainKeyboard();
 
   // Interface used by the BIOS...
-  bool kbhit();
-  int8_t read();
+  virtual bool kbhit();
+  virtual uint8_t read();
 
 
  private:

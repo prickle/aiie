@@ -464,7 +464,7 @@ void TeensyDisplay::drawString(uint8_t mode, uint16_t x, uint8_t y, const char *
 {
   int8_t xsize = 8; // width of a char in this font
 
-  for (int8_t i=0; i<strlen(str); i++) {
+  for (uint8_t i=0; i<strlen(str); i++) {
     drawCharacter(mode, x, y, str[i]);
     x += xsize; // fixme: any inter-char spacing?
   }
@@ -546,7 +546,7 @@ void TeensyDisplay::drawBatteryStatus(uint8_t percent)
     }
 
     for (int x=0; x<11; x++) {
-      uint8_t *p = &appleBitmap[(y * 10 + (x-1))*4];
+      //uint8_t *p = &appleBitmap[(y * 10 + (x-1))*4];
       // It's RGBA; blend w/ background color
 
       uint8_t r,g,b;

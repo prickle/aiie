@@ -192,7 +192,6 @@ bool TeensyFileManager::readTrack(int8_t fd, uint8_t *toWhere, bool isNib)
     f_close(&fil);
     return false;
   }
-
   UINT v;
   f_read(&fil, toWhere, isNib ? 0x1a00 : (256 * 16), &v);
   f_close(&fil);

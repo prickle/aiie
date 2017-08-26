@@ -5,6 +5,7 @@
 
 #include "vmkeyboard.h"
 #include "applemmu.h"
+extern void biosInterrupt();
 
 class AppleKeyboard : public VMKeyboard {
  public:
@@ -13,11 +14,14 @@ class AppleKeyboard : public VMKeyboard {
 
   virtual void keyDepressed(uint8_t k);
   virtual void keyReleased(uint8_t k);
+  virtual void keyDepressed(uint8_t k, uint8_t m);
+  virtual void keyReleased(uint8_t k, uint8_t m);
   virtual void maintainKeyboard(uint32_t cycleCount);
 
  protected:
   bool isVirtualKey(uint8_t kc);
   uint8_t translateKeyWithModifiers(uint8_t k);
+  uint8_t translateKeyWithModifiers(uint8_t k, uint8_t m);
 
  private:
   AppleMMU *mmu;

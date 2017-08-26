@@ -19,3 +19,4 @@ extern PhysicalPaddles *g_paddles;
 extern PhysicalPrinter *g_printer;
 extern int16_t g_volume;
 extern uint8_t g_displayType;
+extern bool biosRequest;
